@@ -82,24 +82,24 @@ static void leapmotor_rx_hook(const CANPacket_t *msg) {
 }
 
 static bool leapmotor_tx_hook(const CANPacket_t *msg) {
+  // Must match LEAPMOTOR_B10 CarControllerParams.ANGLE_LIMITS: lateral accel and jerk limited through a vehicle model
   static const AngleSteeringLimits LEAPMOTOR_STEERING_LIMITS = {
-    .max_angle = 20000,       // 400 deg at 50 per deg; lock is about 520 deg
+    .max_angle = 25000,       // 500 deg at 50 per deg; mechanical lock is about 522 deg
     .angle_deg_to_can = 50,
-    .angle_rate_up_lookup = {
-      {0., 5., 25.},
-      {1.0, .6, .08},
-    },
-    .angle_rate_down_lookup = {
-      {0., 5., 25.},
-      {2.0, .8, .12},
-    },
+    .frequency = 50U,
+  };
+
+  static const AngleSteeringParams LEAPMOTOR_STEERING_PARAMS = {
+    .slip_factor = -0.000613265926803062,  // calc_slip_factor(VM) for LEAPMOTOR_B10
+    .steer_ratio = 15.2,
+    .wheelbase = 2.735,
   };
 
   bool tx = true;
   if (msg->addr == LEAPMOTOR_ADAS_LKA) {
     int desired_angle = (int)GET_BYTES(msg, 13, 2) - LEAPMOTOR_ANGLE_CENTER;  // STEER_ANGLE_REQ
     bool lka_active = GET_BIT(msg, 99U);                                         // LCC_STEERING_ACTIVE_COPY
-    if (steer_angle_cmd_checks(desired_angle, lka_active, LEAPMOTOR_STEERING_LIMITS)) {
+    if (steer_angle_cmd_checks_vm(desired_angle, lka_active, LEAPMOTOR_STEERING_LIMITS, LEAPMOTOR_STEERING_PARAMS)) {
       tx = false;
     }
   }

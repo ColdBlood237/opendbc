@@ -13,6 +13,7 @@ class CarState(CarStateBase):
     super().__init__(CP)
     self.steering_angle_last = 0.0
     self.lcc_state = 7
+    self.adas_lka: dict | None = None
 
   def update(self, can_parsers) -> structs.CarState:
     cp = can_parsers[Bus.pt]
@@ -55,11 +56,15 @@ class CarState(CarStateBase):
 
     # stock ACC / LCC, read from the camera side
     ret.cruiseState.enabled = bool(cp.vl['POWERTRAIN_STATE']['ASSIST_ENGAGED'])
-    ret.cruiseState.available = ret.cruiseState.enabled  # TODO: no "ACC available" signal found yet
+    # ACC_STATE: 1 not ready (Park, brake, accelerator override), 2 ready, 3 engaged. Engaged also counts as
+    # available so that an accelerator override (state 1 while engaged) does not raise wrongCarMode
+    ret.cruiseState.available = ret.cruiseState.enabled or int(cp_cam.vl['ADAS_LKA']['ACC_STATE']) in (2, 3)
     ret.cruiseState.speed = cp_cam.vl['ADAS_LKA']['ACC_SET_SPEED'] * CV.KPH_TO_MS
     ret.cruiseState.speedCluster = ret.cruiseState.speed
     ret.cruiseState.standstill = ret.cruiseState.enabled and ret.standstill
     self.lcc_state = int(cp_cam.vl['ADAS_LKA']['LCC_STATE'])
+    # latest camera frame, rebuilt by the controller; None until the camera's 0x83 has been received
+    self.adas_lka = dict(cp_cam.vl['ADAS_LKA']) if cp_cam.ts_nanos['ADAS_LKA']['COUNTER'] > 0 else None
 
     return ret
 

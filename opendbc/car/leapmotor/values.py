@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from opendbc.car import Bus, CarSpecs, DbcDict, PlatformConfig, Platforms
 from opendbc.car.docs_definitions import CarDocs, CarHarness, CarParts
-from opendbc.car.lateral import AngleSteeringLimits
+from opendbc.car.lateral import AngleSteeringLimitsVM
 from opendbc.car.fw_query_definitions import FwQueryConfig, Request, StdQueries
 from opendbc.car.structs import CarParams
 
@@ -10,14 +10,14 @@ Ecu = CarParams.Ecu
 
 
 class CarControllerParams:
-  STEER_STEP = 1
+  STEER_STEP = 2  # ADAS_LKA (0x83) is sent at 50 Hz
 
-  # Must match opendbc/safety/modes/leapmotor.h: max 400 deg (lock is about 520 deg), rate limits in deg per
-  # 50 Hz frame at 0, 5 and 25 m/s. Conservative drafts, to be tuned once the steering responds to openpilot.
-  ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
-    400,
-    ([0., 5., 25.], [1.0, .6, .08]),
-    ([0., 5., 25.], [2.0, .8, .12]),
+  # Must match opendbc/safety/modes/leapmotor.h. openpilot's standard vehicle-model limits: lateral accel and
+  # lateral jerk of about 3.6 (m/s^2, m/s^3), so near-full lock is allowed up to about 15 km/h (U-turns) and
+  # about 50 deg at 50 km/h. Stock LCC stays below 2.3 m/s^2 on every recorded route.
+  ANGLE_LIMITS: AngleSteeringLimitsVM = AngleSteeringLimitsVM(
+    500,  # deg; mechanical lock is about 522 deg, keep a margin so the EPS never drives into the end stop
+    MAX_ANGLE_RATE=5,  # deg per 20 ms frame (250 deg/s): lock to lock in about 4 s. EPS fault rate untested
   )
   # Raw driver torque from EPS_STEERING.STEER_TORQUE_CANDIDATE: about 1-3 hands off, 21 holding full lock.
   # Unit unknown; threshold to be tuned.
