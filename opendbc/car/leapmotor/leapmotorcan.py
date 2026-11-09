@@ -55,3 +55,25 @@ def leapmotor_checksum(address: int, sig, d: bytearray) -> int:
     crc = CRC8H2F[crc ^ b]
   crc = CRC8H2F[crc ^ constants[d[1] & 0x0F]]
   return crc ^ 0xFF
+
+
+# LCC_STATE values seen while the stock system steers (4 curve, 5 active, 6 engaging); 5 is the steady state
+LCC_STATE_ACTIVE = 5
+LCC_STATES_STEERING = (4, 5, 6)
+
+
+def create_steering_control(packer, camera_lka: dict, apply_angle: float, lat_active: bool):
+  """Rebuild ADAS_LKA (0x83) from the camera's latest frame, replacing only the steering fields.
+
+  Every other field (ACC state, acceleration request, set speed, constants) is copied unchanged, so the
+  stock ACC keeps working while openpilot steers. The packer recomputes the E2E checksum and runs its own
+  counter, since the EPS only ever sees openpilot's frames once the camera's are blocked.
+  ASSUMPTION, untested on the car: the EPS follows STEER_ANGLE_REQ when LCC_STEERING_ACTIVE_COPY is set and
+  LCC_STATE is a steering state, even when the stock LCC is not engaged.
+  """
+  values = {k: v for k, v in camera_lka.items() if k not in ("CHECKSUM", "COUNTER")}
+  values["STEER_ANGLE_REQ"] = apply_angle
+  values["LCC_STEERING_ACTIVE_COPY"] = 1 if lat_active else 0
+  if lat_active and int(camera_lka.get("LCC_STATE", 7)) not in LCC_STATES_STEERING:
+    values["LCC_STATE"] = LCC_STATE_ACTIVE
+  return packer.make_can_msg("ADAS_LKA", 0, values)
