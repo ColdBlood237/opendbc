@@ -81,6 +81,15 @@ def create_steering_control(packer, camera_lka: dict, apply_angle: float, lat_ac
 
 STALK_PUSH_UP_CANCEL = 3
 
+# A real ADAS_LKA frame from the camera with ACC and LCC off, used until the camera's first frame is received
+ADAS_LKA_IDLE = bytes.fromhex("260500446411E100007D00700043E4000178007D000000000000000000000000")
+
+
+def decode_adas_lka_idle() -> dict:
+  from opendbc.can.dbc import DBC  # imported here: opendbc.can.dbc imports this module for the checksum
+  msg = DBC("leapmotor_b10").addr_to_msg[0x83]
+  return {name: sig.get_raw_value(ADAS_LKA_IDLE) * sig.factor + sig.offset for name, sig in msg.sigs.items()}
+
 
 def create_cancel(packer, powertrain_state: dict):
   """Copy of the VCU's latest POWERTRAIN_STATE (0xB7) with the right stalk pushed up, sent to the camera (bus 2).
