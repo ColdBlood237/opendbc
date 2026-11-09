@@ -35,8 +35,10 @@ static uint8_t leapmotor_get_counter(const CANPacket_t *msg) {
 
 // AUTOSAR E2E Profile 2, as volkswagen_mqb_meb_compute_crc: CRC-8H2F over bytes 1..end, then a
 // per-message constant chosen by the counter. Constants learned from logs; exact on held-out routes.
+#define LEAPMOTOR_E2E_COUNT 4U
+
 static uint32_t leapmotor_compute_checksum(const CANPacket_t *msg) {
-  static const LeapmotorE2EConstants E2E[] = {
+  static const LeapmotorE2EConstants E2E[LEAPMOTOR_E2E_COUNT] = {
     {LEAPMOTOR_WHEEL_SPEEDS, {0xD9U, 0x90U, 0x33U, 0xE1U, 0x3AU, 0x1AU, 0xDFU, 0xC6U, 0xB5U, 0xDCU, 0xEEU, 0x04U, 0xFAU, 0xD7U, 0xD4U, 0x99U}},
     {LEAPMOTOR_EPS_STEERING, {0x61U, 0x4BU, 0x17U, 0xE4U, 0x78U, 0x0BU, 0xA1U, 0xB4U, 0xBCU, 0xD8U, 0xEAU, 0xF5U, 0xD9U, 0x21U, 0xCAU, 0x86U}},
     {LEAPMOTOR_VEHICLE_STATE, {0x71U, 0x0DU, 0x0BU, 0xC2U, 0x08U, 0xC6U, 0x63U, 0x4BU, 0x3FU, 0x2BU, 0x06U, 0x10U, 0xF0U, 0xD2U, 0x87U, 0x0DU}},
@@ -44,7 +46,7 @@ static uint32_t leapmotor_compute_checksum(const CANPacket_t *msg) {
   };
 
   uint8_t constant = 0U;
-  for (size_t i = 0U; i < (sizeof(E2E) / sizeof(E2E[0])); i++) {
+  for (uint8_t i = 0U; i < LEAPMOTOR_E2E_COUNT; i++) {
     constant = (E2E[i].addr == msg->addr) ? E2E[i].constants[leapmotor_get_counter(msg)] : constant;
   }
 
