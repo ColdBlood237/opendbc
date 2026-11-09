@@ -2,7 +2,6 @@ import unittest
 
 from opendbc.can import CANPacker
 from opendbc.can.dbc import DBC
-from opendbc.can.parser import get_raw_value
 from opendbc.car.leapmotor import leapmotorcan
 from opendbc.car.leapmotor.leapmotorcan import leapmotor_checksum
 
@@ -37,7 +36,7 @@ class TestLeapmotorCan(unittest.TestCase):
     self.msg = DBC("leapmotor_b10").addr_to_msg[0x83]
 
   def unpack(self, dat: bytes) -> dict:
-    return {n: get_raw_value(dat, s) * s.factor + s.offset for n, s in self.msg.sigs.items()}
+    return {n: s.get_raw_value(dat) * s.factor + s.offset for n, s in self.msg.sigs.items()}
 
   def test_sign_convention(self):
     # openpilot expects positive = left for steering angle and yaw rate
@@ -45,7 +44,7 @@ class TestLeapmotorCan(unittest.TestCase):
 
     def decode(addr, hexdata, name):
       sig = dbc.addr_to_msg[addr].sigs[name]
-      return get_raw_value(bytes.fromhex(hexdata), sig) * sig.factor + sig.offset
+      return sig.get_raw_value(bytes.fromhex(hexdata)) * sig.factor + sig.offset
     self.assertLess(decode(0x18D, HARD_RIGHT[0x18D], "STEER_ANGLE"), -400)
     self.assertLess(decode(0x233, HARD_RIGHT[0x233], "YAW_RATE"), -30)
     self.assertGreater(decode(0x18D, HARD_LEFT[0x18D], "STEER_ANGLE"), 400)

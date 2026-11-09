@@ -61,13 +61,13 @@ static void leapmotor_rx_hook(const CANPacket_t *msg) {
   if (msg->bus == LEAPMOTOR_MAIN_BUS) {
     if (msg->addr == LEAPMOTOR_WHEEL_SPEEDS) {
       // four 16-bit little-endian wheel speeds at 0.01 km/h: FL, FR, RL, RR
-      uint32_t sum = GET_BYTES(msg, 2, 2) + GET_BYTES(msg, 4, 2) + GET_BYTES(msg, 6, 2) + GET_BYTES(msg, 8, 2);
+      uint32_t sum = GET_BYTES_LE(msg, 2, 2) + GET_BYTES_LE(msg, 4, 2) + GET_BYTES_LE(msg, 6, 2) + GET_BYTES_LE(msg, 8, 2);
       vehicle_moving = sum > 0U;
       UPDATE_VEHICLE_SPEED((sum / 4.0) * 0.01 * KPH_TO_MS);
     }
 
     if (msg->addr == LEAPMOTOR_EPS_STEERING) {
-      int angle_meas_new = LEAPMOTOR_ANGLE_CENTER - (int)GET_BYTES(msg, 3, 2);
+      int angle_meas_new = LEAPMOTOR_ANGLE_CENTER - (int)GET_BYTES_LE(msg, 3, 2);
       update_sample(&angle_meas, angle_meas_new);
     }
 
@@ -91,14 +91,14 @@ static bool leapmotor_tx_hook(const CANPacket_t *msg) {
   };
 
   static const AngleSteeringParams LEAPMOTOR_STEERING_PARAMS = {
-    .slip_factor = -0.000613265926803062,  // calc_slip_factor(VM) for LEAPMOTOR_B10
+    .slip_factor = -0.0006132659333604452,  // calc_slip_factor(VM) for LEAPMOTOR_B10
     .steer_ratio = 15.2,
     .wheelbase = 2.735,
   };
 
   bool tx = true;
   if (msg->addr == LEAPMOTOR_ADAS_LKA) {
-    int desired_angle = LEAPMOTOR_ANGLE_CENTER - (int)GET_BYTES(msg, 13, 2);  // STEER_ANGLE_REQ
+    int desired_angle = LEAPMOTOR_ANGLE_CENTER - (int)GET_BYTES_LE(msg, 13, 2);  // STEER_ANGLE_REQ
     bool lka_active = GET_BIT(msg, 99U);                                         // LCC_STEERING_ACTIVE_COPY
     if (steer_angle_cmd_checks_vm(desired_angle, lka_active, LEAPMOTOR_STEERING_LIMITS, LEAPMOTOR_STEERING_PARAMS)) {
       tx = false;

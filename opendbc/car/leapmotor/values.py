@@ -49,7 +49,8 @@ class CAR(Platforms):
 
 
 # The car's own gateway queries these identifiers on 0x7DF at every ignition, and the EPS (0x73D), brake (0x73E)
-# and front camera (0x75E) answer. Physical request addresses are assumed to be the reply minus 8: UNCONFIRMED.
+# and front camera (0x75E) answer. Physical request addresses are the reply minus 8: confirmed for the EPS (0x735) by
+# flow control in logged multi-frame replies, still unconfirmed for the brake (0x736) and camera (0x756).
 PART_NUMBER_REQUEST = bytes([0x22, 0xF1, 0x87])
 PART_NUMBER_RESPONSE = bytes([0x62, 0xF1, 0x87])
 
@@ -62,6 +63,8 @@ FW_QUERY_CONFIG = FwQueryConfig(
       bus=0,
     ),
   ],
+  # part numbers such as 3401100-AG01, zero-padded to 19 bytes
+  fw_version_regex=br"\d{7}-[A-Z]{2}\d{2}\x00{7}",
 )
 
 DBC = CAR.create_dbc_map()
