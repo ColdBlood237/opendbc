@@ -13,6 +13,7 @@ import opendbc.safety.tests.common as common
 from opendbc.safety.tests.common import CANPackerSafety, away_round, round_speed
 
 ADAS_LKA = 0x83
+POWERTRAIN_STATE = 0xB7
 
 
 def round_angle(apply_angle, can_offset=0):
@@ -116,7 +117,7 @@ REAL_FRAMES = {  # 20 consecutive frames per message from a 2025 global B10, rou
 class TestLeapmotorSafety(common.CarSafetyTest, common.AngleSteeringSafetyTest):
   RELAY_MALFUNCTION_ADDRS = {0: (ADAS_LKA,)}
   FWD_BLACKLISTED_ADDRS = {2: [ADAS_LKA]}
-  TX_MSGS = [[ADAS_LKA, 0]]
+  TX_MSGS = [[ADAS_LKA, 0], [POWERTRAIN_STATE, 2]]
 
   MAIN_BUS = 0
 
@@ -220,6 +221,14 @@ class TestLeapmotorSafety(common.CarSafetyTest, common.AngleSteeringSafetyTest):
 
         # recover
         self.assertTrue(self._tx(self._angle_cmd_msg(0, True)))
+
+  def test_cancel_only(self):
+    # the camera copy of POWERTRAIN_STATE may only carry the stalk-up cancel, at any time
+    for allowed in (False, True):
+      self.safety.set_controls_allowed(allowed)
+      for stalk in range(4):
+        msg = self.packer.make_can_msg_safety("POWERTRAIN_STATE", 2, {"STALK_PUSH": stalk})
+        self.assertEqual(stalk == 3, self._tx(msg), stalk)
 
   def test_rx_hook(self):
     # a valid frame passes; a bad checksum or a skipped counter is rejected

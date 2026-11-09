@@ -79,6 +79,23 @@ BO_ 183 POWERTRAIN_STATE: 32 XXX
  SG_ ASSIST_ENGAGED : 30|1@1+ (1,0) [0|1] "" XXX
  SG_ STALK_PUSH : 40|2@1+ (1,0) [0|3] "" XXX
  SG_ TORQUE_DEMAND_CANDIDATE : 56|8@1+ (1,0) [0|0] "raw" XXX
+ SG_ UNKNOWN_18 : 18|1@1+ (1,0) [0|1] "" XXX
+ SG_ UNKNOWN_26 : 26|4@1+ (1,0) [0|15] "" XXX
+ SG_ UNKNOWN_33 : 33|1@1+ (1,0) [0|1] "" XXX
+ SG_ UNKNOWN_36 : 36|2@1+ (1,0) [0|3] "" XXX
+ SG_ UNKNOWN_42 : 42|3@1+ (1,0) [0|7] "" XXX
+ SG_ UNKNOWN_50 : 50|4@1+ (1,0) [0|15] "" XXX
+ SG_ UNKNOWN_55 : 55|1@1+ (1,0) [0|1] "" XXX
+ SG_ UNKNOWN_64 : 64|11@1+ (1,0) [0|2047] "" XXX
+ SG_ UNKNOWN_80 : 80|11@1+ (1,0) [0|2047] "" XXX
+ SG_ UNKNOWN_95 : 95|1@1+ (1,0) [0|1] "" XXX
+ SG_ UNKNOWN_97 : 97|10@1+ (1,0) [0|1023] "" XXX
+ SG_ UNKNOWN_112 : 112|11@1+ (1,0) [0|2047] "" XXX
+ SG_ UNKNOWN_128 : 128|7@1+ (1,0) [0|127] "" XXX
+ SG_ UNKNOWN_136 : 136|11@1+ (1,0) [0|2047] "" XXX
+ SG_ UNKNOWN_151 : 151|2@1+ (1,0) [0|3] "" XXX
+ SG_ UNKNOWN_154 : 154|14@1+ (1,0) [0|16383] "" XXX
+ SG_ UNKNOWN_169 : 169|12@1+ (1,0) [0|4095] "" XXX
 
 BO_ 182 VEHICLE_STATE: 16 XXX
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
@@ -135,6 +152,7 @@ CM_ SG_ 389 SEATBELT_BUCKLED "CONFIRMED by the filmed belt step: the driver star
 CM_ SG_ 656 BLINKER_LEFT "CONFIRMED by filmed step order: left, right, then hazards. Flips every 0.40 s. Both blinker bits on means hazards.";
 CM_ SG_ 656 BLINKER_RIGHT "CONFIRMED by filmed step order: left, right, then hazards. Flips every 0.40 s.";
 CM_ SG_ 656 DRIVER_DOOR_OPEN "CONFIRMED once by filmed door opening; 1 for 11.5 s. Bit 46 did the same, so one may be another door or a lamp.";
+CM_ BO_ 183 "Every bit that is not always zero is defined (UNKNOWN_* fields copied as-is), so unpack-then-pack reproduces recorded frames exactly; needed to send the camera a cancel copy of this frame.";
 CM_ SG_ 183 STALK_PUSH "CONFIRMED by stated order, parked: 1 is a single push (ACC), 2 is a double push (LCC, passing through 1 first), each held about 1 s. INFERRED: 3 is pushing the stalk up, which the driver says cancels assist. All 14 logged value-3 pushes during assist ended it within about 0.25 s.";
 CM_ SG_ 183 TORQUE_DEMAND_CANDIDATE "WEAK: rises with acceleration (r 0.78-0.84), but stayed at 0 during 3 filmed accelerator presses in Park. Probably torque demand. Drops to 0 whenever the accelerator is released, even while slowing at -1.5 m/s^2, so it carries no regen.";
 CM_ SG_ 182 ACCEL_PEDAL "CONFIRMED by 3 filmed presses in Park, peak 254 each. Scale 0.4 percent per count as in the Leapmotor T03 DBC, so 254 is about 100 percent. One-pedal mode was off for this test.";

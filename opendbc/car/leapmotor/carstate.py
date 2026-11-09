@@ -15,6 +15,7 @@ class CarState(CarStateBase):
     self.lcc_state = 7
     self.adas_lka: dict | None = None
     self.eps_ready_seen = False
+    self.powertrain_state: dict | None = None
 
   def update(self, can_parsers) -> structs.CarState:
     cp = can_parsers[Bus.pt]
@@ -62,6 +63,8 @@ class CarState(CarStateBase):
 
     # stock ACC / LCC, read from the camera side
     ret.cruiseState.enabled = bool(cp.vl['POWERTRAIN_STATE']['ASSIST_ENGAGED'])
+    # latest VCU frame, copied by the controller to cancel ACC; None until received
+    self.powertrain_state = dict(cp.vl['POWERTRAIN_STATE']) if cp.ts_nanos['POWERTRAIN_STATE']['COUNTER'] > 0 else None
     # ACC_STATE: 1 not ready (Park, brake, accelerator override), 2 ready, 3 engaged. Engaged also counts as
     # available so that an accelerator override (state 1 while engaged) does not raise wrongCarMode
     ret.cruiseState.available = ret.cruiseState.enabled or int(cp_cam.vl['ADAS_LKA']['ACC_STATE']) in (2, 3)

@@ -77,3 +77,19 @@ def create_steering_control(packer, camera_lka: dict, apply_angle: float, lat_ac
   if lat_active and int(camera_lka.get("LCC_STATE", 7)) not in LCC_STATES_STEERING:
     values["LCC_STATE"] = LCC_STATE_ACTIVE
   return packer.make_can_msg("ADAS_LKA", 0, values)
+
+
+STALK_PUSH_UP_CANCEL = 3
+
+
+def create_cancel(packer, powertrain_state: dict):
+  """Copy of the VCU's latest POWERTRAIN_STATE (0xB7) with the right stalk pushed up, sent to the camera (bus 2).
+
+  The camera runs ACC and reads the stalk from this frame; pushing the stalk up cancels ACC and LCC (14 of 14 logged
+  pushes ended assist within 0.25 s). The copy uses the next counter value, so it takes the place of the next real
+  frame. The safety model only allows this frame with the stalk pushed up.
+  """
+  values = {k: v for k, v in powertrain_state.items() if k != "CHECKSUM"}
+  values["STALK_PUSH"] = STALK_PUSH_UP_CANCEL
+  values["COUNTER"] = (int(powertrain_state["COUNTER"]) + 1) % 16
+  return packer.make_can_msg("POWERTRAIN_STATE", 2, values)

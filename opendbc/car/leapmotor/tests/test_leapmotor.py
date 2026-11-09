@@ -25,6 +25,12 @@ REAL_ADAS_LKA = {
 }
 STEERING_BYTES = {12, 13, 14, 17}  # LCC_STEERING_ACTIVE_COPY (bit 99), STEER_ANGLE_REQ (104|16), LCC_STATE (140|4)
 
+# Real POWERTRAIN_STATE (0xB7) frames while driving with ACC engaged
+REAL_POWERTRAIN_STATE = [
+  "450B04401004B42C000000800000000055E2048D5E2013000000000000000000",
+  "070C04401004B42C000000800000000055E204855E2A13000000000000000000",
+]
+
 # Real frames from the filmed figure-eights at the moments of hardest right and left turn, as measured by the
 # comma's own gyro (livePose.angularVelocityDevice.z: +36.6 deg/s right, -44.6 deg/s left)
 HARD_RIGHT = {0x18D: "0B0602CAE4009EC5869A5E012C2C0000D5128658A3E803000000000000000000", 0x233: "4C06C88947811100"}
@@ -58,6 +64,21 @@ class TestLeapmotorCan(unittest.TestCase):
         dat = bytes.fromhex(hexdata)
         values = {k: v for k, v in self.unpack(dat).items() if k != "CHECKSUM"}
         self.assertEqual(bytes(packer.pack(0x83, values)), dat)
+
+  def test_cancel_changes_only_stalk_and_counter(self):
+    msg = DBC("leapmotor_b10").addr_to_msg[0xB7]
+    for hexdata in REAL_POWERTRAIN_STATE:
+      dat = bytes.fromhex(hexdata)
+      vals = {n: s.get_raw_value(dat) * s.factor + s.offset for n, s in msg.sigs.items()}
+      addr, out, bus = leapmotorcan.create_cancel(CANPacker("leapmotor_b10"), vals)
+      self.assertEqual((addr, bus), (0xB7, 2))
+      self.assertEqual(out[0], leapmotor_checksum(0xB7, None, bytearray(out)))
+      self.assertEqual(out[1] & 0xF, (dat[1] + 1) & 0xF)
+      self.assertEqual(out[5] & 0x3, 3)
+      for i in range(2, len(dat)):
+        if i != 5:
+          self.assertEqual(out[i], dat[i], f"byte {i}")
+      self.assertEqual(out[5] & ~0x3, dat[5] & ~0x3)
 
   def test_rebuild_changes_only_steering(self):
     for kind, frames in REAL_ADAS_LKA.items():

@@ -7,7 +7,7 @@
 
 #define LEAPMOTOR_ADAS_LKA          0x83U   // TX from openpilot (stock: front camera), steering angle request
 #define LEAPMOTOR_VEHICLE_STATE     0xB6U   // RX from VCU, accelerator pedal, brake pressed, gear
-#define LEAPMOTOR_POWERTRAIN_STATE  0xB7U   // RX from VCU, stock ACC/LCC engaged
+#define LEAPMOTOR_POWERTRAIN_STATE  0xB7U   // RX from VCU, stock ACC/LCC engaged; TX to camera: stalk-up cancel only
 #define LEAPMOTOR_WHEEL_SPEEDS      0x184U  // RX from ESC, wheel speeds
 #define LEAPMOTOR_EPS_STEERING      0x18DU  // RX from EPS, steering angle
 
@@ -97,6 +97,14 @@ static bool leapmotor_tx_hook(const CANPacket_t *msg) {
   };
 
   bool tx = true;
+
+  // Only a cancel may be sent to the camera: STALK_PUSH (bits 40-41) must be 3, stalk pushed up
+  if (msg->addr == LEAPMOTOR_POWERTRAIN_STATE) {
+    if (((msg->data[5]) & 0x3U) != 3U) {
+      tx = false;
+    }
+  }
+
   if (msg->addr == LEAPMOTOR_ADAS_LKA) {
     int desired_angle = LEAPMOTOR_ANGLE_CENTER - (int)GET_BYTES_LE(msg, 13, 2);  // STEER_ANGLE_REQ
     bool lka_active = GET_BIT(msg, 99U);                                         // LCC_STEERING_ACTIVE_COPY
@@ -113,6 +121,7 @@ static safety_config leapmotor_init(uint16_t param) {
 
   static const CanMsg LEAPMOTOR_TX_MSGS[] = {
     {LEAPMOTOR_ADAS_LKA, LEAPMOTOR_MAIN_BUS, 32, .check_relay = true},
+    {LEAPMOTOR_POWERTRAIN_STATE, LEAPMOTOR_CAM_BUS, 32, .check_relay = false},
   };
 
   static RxCheck leapmotor_rx_checks[] = {

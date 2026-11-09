@@ -35,6 +35,10 @@ class CarController(CarControllerBase):
                                                           CS.out.steeringAngleDeg, CC.latActive, CarControllerParams, self.VM)
       can_sends.append(leapmotorcan.create_steering_control(self.packer, CS.adas_lka, self.apply_angle_last, CC.latActive))
 
+    # cancel stock ACC when openpilot asks (it is engaged with ACC, so it cancels ACC whenever it disengages)
+    if CC.cruiseControl.cancel and self.frame % CarControllerParams.STEER_STEP == 0 and CS.powertrain_state is not None:
+      can_sends.append(leapmotorcan.create_cancel(self.packer, CS.powertrain_state))
+
     new_actuators = actuators.as_builder()
     new_actuators.steeringAngleDeg = self.apply_angle_last
 
