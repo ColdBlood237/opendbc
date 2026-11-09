@@ -12,9 +12,10 @@ class CarInterface(CarInterfaceBase):
   def _get_params(ret: structs.CarParams, candidate, fingerprint, car_fw, alpha_long, is_release, docs) -> structs.CarParams:
     ret.brand = 'leapmotor'
 
-    # Read-only draft: no safety model exists yet, so nothing may be sent
-    ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.noOutput)]
-    ret.dashcamOnly = True
+    # STAGE 1 TEST BUILD: real safety model (opens the harness relay, blocks the camera's 0x83) and openpilot sends
+    # its rebuilt 0x83, but never steers (values.STEERING_ALLOWED) and cannot engage. Not for normal use.
+    ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.leapmotor)]
+    ret.dashcamOnly = False
 
     # The camera's angle request (ADAS_LKA.STEER_ANGLE_REQ) leads the measured angle by 70-100 ms during LCC
     ret.steerControlType = structs.CarParams.SteerControlType.angle

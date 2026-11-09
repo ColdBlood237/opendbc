@@ -2,7 +2,7 @@ from opendbc.car import Bus, structs
 from opendbc.can.parser import CANParser
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarStateBase
-from opendbc.car.leapmotor.values import DBC, CarControllerParams
+from opendbc.car.leapmotor.values import DBC, CarControllerParams, STEERING_ALLOWED
 
 GearShifter = structs.CarState.GearShifter
 GEARS = {0: GearShifter.park, 1: GearShifter.reverse, 2: GearShifter.neutral, 3: GearShifter.drive}
@@ -76,6 +76,8 @@ class CarState(CarStateBase):
     # ACC_STATE: 1 not ready (Park, brake, accelerator override), 2 ready, 3 engaged. Engaged also counts as
     # available so that an accelerator override (state 1 while engaged) does not raise wrongCarMode
     ret.cruiseState.available = ret.cruiseState.enabled or int(cp_cam.vl['ADAS_LKA']['ACC_STATE']) in (2, 3)
+    if not STEERING_ALLOWED:
+      ret.cruiseState.available = False  # stage 1: openpilot must not engage (shows wrongCarMode instead)
     ret.cruiseState.speed = cp_cam.vl['ADAS_LKA']['ACC_SET_SPEED'] * CV.KPH_TO_MS
     ret.cruiseState.speedCluster = ret.cruiseState.speed
     ret.cruiseState.standstill = ret.cruiseState.enabled and ret.standstill
