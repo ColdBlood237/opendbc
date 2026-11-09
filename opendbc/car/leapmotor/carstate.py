@@ -14,7 +14,7 @@ class CarState(CarStateBase):
     self.steering_angle_last = 0.0
     self.lcc_state = 7
     self.adas_lka: dict | None = None
-    self.eps_ready_seen = False
+    self.lka_received_seen = False
     self.powertrain_state: dict | None = None
 
   def update(self, can_parsers) -> structs.CarState:
@@ -46,11 +46,11 @@ class CarState(CarStateBase):
     ret.steeringTorque = cp.vl['EPS_STEERING']['STEER_TORQUE_CANDIDATE']
     ret.steeringTorqueEps = cp.vl['EPS_STEERING']['EPS_ASSIST_TORQUE_CANDIDATE']
     ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE, 5)
-    # EPS_READY turns on within 0.2 s of ignition and never dropped on any recorded drive: losing it after it was
-    # set is treated as a permanent fault. Temporary fault codes are unknown until the EPS has refused a command.
-    eps_ready = bool(cp.vl['EPS_STEERING']['EPS_READY'])
-    self.eps_ready_seen = self.eps_ready_seen or eps_ready
-    ret.steerFaultPermanent = self.eps_ready_seen and not eps_ready
+    # The EPS reports whether it receives ADAS_LKA (0x83): losing it after it was received means our steering frame is
+    # missing or rejected (camera-unplug test). Not set before the camera's first frame after ignition.
+    lka_received = bool(cp.vl['EPS_STEERING']['ADAS_LKA_RECEIVED'])
+    self.lka_received_seen = self.lka_received_seen or lka_received
+    ret.steerFaultTemporary = self.lka_received_seen and not lka_received
 
     # gear
     ret.gearShifter = GEARS.get(int(cp.vl['VEHICLE_STATE']['GEAR']), GearShifter.unknown)

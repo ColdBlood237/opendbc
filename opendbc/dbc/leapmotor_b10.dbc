@@ -26,9 +26,9 @@ BO_ 397 EPS_STEERING: 32 XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ STEER_ANGLE : 24|16@1+ (-0.02,649.8) [-661|650] "deg" XXX
  SG_ STEER_SPEED_ABS : 40|8@1+ (4,0) [0|1020] "deg/s" XXX
- SG_ EPS_READY : 66|1@1+ (1,0) [0|1] "" XXX
+ SG_ ADAS_LKA_RECEIVED : 66|1@1+ (1,0) [0|1] "" XXX
  SG_ LCC_STEERING_ACTIVE : 67|1@1+ (1,0) [0|1] "" XXX
- SG_ EPS_STARTUP : 120|2@1+ (1,0) [0|3] "" XXX
+ SG_ ADAS_LKA_TIMEOUT : 120|2@1+ (1,0) [0|3] "" XXX
  SG_ STEER_TORQUE_CANDIDATE : 80|8@1+ (-1,78) [0|0] "raw" XXX
  SG_ EPS_ASSIST_TORQUE_CANDIDATE : 168|16@1+ (1,-1000) [0|0] "raw" XXX
 
@@ -155,8 +155,8 @@ CM_ BO_ 552 "Rear-left blind-spot radar (20 Hz, silent when stopped). Bytes 8-15
 CM_ SG_ 552 OBJECT_DETECTED "CONFIRMED on video: on 3 of 3 checked episodes a car appeared in the left lane beside the B10 in the road camera within 1 s of the flag clearing. Set in 8.5% of driving above 50 km/h, less often while signalling left (drivers wait for a clear lane).";
 CM_ BO_ 554 "Rear-right blind-spot radar, same layout as BSD_LEFT (0x228).";
 CM_ SG_ 554 OBJECT_DETECTED "INFERRED by symmetry with BSD_LEFT: same layout, set in 0.7% of driving above 50 km/h (in right-hand traffic you are rarely overtaken on the right). The one checked episode was not conclusive on video.";
-CM_ SG_ 397 EPS_READY "INFERRED: 0 for the first 0.2 s after ignition, then 1 on every frame of every recorded route (about 400,000 frames). Used as a permanent steering fault if it drops after having been set. No real EPS fault has been recorded, so fault codes are still unknown.";
-CM_ SG_ 397 EPS_STARTUP "INFERRED: 3 for the first second after ignition, then 0 on every recorded frame.";
+CM_ SG_ 397 ADAS_LKA_RECEIVED "CONFIRMED by the camera-unplug test: 1 while the EPS receives ADAS_LKA (0x83) from the camera, 0 with the camera unplugged (and for the first 0.2 s after ignition, before the camera starts). Bit 60 sets at the same time. Used as a temporary steering fault: the EPS is not receiving a valid steering frame.";
+CM_ SG_ 397 ADAS_LKA_TIMEOUT "CONFIRMED by the camera-unplug test: 3 with the camera unplugged (no ADAS_LKA), 0 when it is received; also 3 for the first second after ignition.";
 CM_ SG_ 397 STEER_ANGLE "CONFIRMED by filmed holds: raw moves about 4450 per 90 deg and 9000 per 180 deg. Sign CONFIRMED: positive = left (openpilot convention); raw rises to the right (r +0.98 against the comma gyro in the figure-eights). Factor is negative so openpilot reads left-positive. Lock is about -515/+522 deg, or 2.9 turns, which the driver confirmed. Centre 32490 from the filmed centre holds; a few counts may remain.";
 CM_ SG_ 397 STEER_SPEED_ABS "INFERRED: one count is about 202 raw per second, or 4.04 deg/s, R2 0.99 or better on 5 datasets; 4 assumed, the same as the Leapmotor T03 DBC. Magnitude only, no sign.";
 CM_ SG_ 397 STEER_TORQUE_CANDIDATE "INFERRED: driver steering torque, positive = left (openpilot convention). Raw 57 and 100 while held still at left and right lock, exactly 78 hands off; raw rises when steering right (r +0.54 to +0.81 with the steering rate on 3 traces). Hands-off LCC never exceeds 3, manual steering while moving reaches 7 (p90) to 20. Unit unknown.";
@@ -175,7 +175,7 @@ CM_ SG_ 389 SEATBELT_BUCKLED "CONFIRMED by the filmed belt step: the driver star
 CM_ SG_ 656 BLINKER_LEFT "CONFIRMED by filmed step order: left, right, then hazards. Flips every 0.40 s. Both blinker bits on means hazards.";
 CM_ SG_ 656 BLINKER_RIGHT "CONFIRMED by filmed step order: left, right, then hazards. Flips every 0.40 s.";
 CM_ SG_ 656 DRIVER_DOOR_OPEN "CONFIRMED once by filmed door opening; 1 for 11.5 s. Bit 46 did the same, so one may be another door or a lamp.";
-CM_ BO_ 183 "Every bit that is not always zero is defined (UNKNOWN_* fields copied as-is), so unpack-then-pack reproduces recorded frames exactly; needed to send the camera a cancel copy of this frame.";
+CM_ BO_ 183 "Bits 16 and 28 set when the camera is unplugged (probably ADAS unavailable). Every bit that is not always zero is defined (UNKNOWN_* fields copied as-is), so unpack-then-pack reproduces recorded frames exactly; needed to send the camera a cancel copy of this frame.";
 CM_ SG_ 183 STALK_PUSH "CONFIRMED by stated order, parked: 1 is a single push (ACC), 2 is a double push (LCC, passing through 1 first), each held about 1 s. INFERRED: 3 is pushing the stalk up, which the driver says cancels assist. All 14 logged value-3 pushes during assist ended it within about 0.25 s.";
 CM_ SG_ 183 TORQUE_DEMAND_CANDIDATE "WEAK: rises with acceleration (r 0.78-0.84), but stayed at 0 during 3 filmed accelerator presses in Park. Probably torque demand. Drops to 0 whenever the accelerator is released, even while slowing at -1.5 m/s^2, so it carries no regen.";
 CM_ SG_ 182 ACCEL_PEDAL "CONFIRMED by 3 filmed presses in Park, peak 254 each. Scale 0.4 percent per count as in the Leapmotor T03 DBC, so 254 is about 100 percent. One-pedal mode was off for this test.";
