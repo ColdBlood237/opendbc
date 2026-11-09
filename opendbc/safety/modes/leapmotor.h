@@ -14,7 +14,8 @@
 #define LEAPMOTOR_MAIN_BUS 0U
 #define LEAPMOTOR_CAM_BUS  2U
 
-// Steering angle is 0.02 deg per bit with the centre at raw 32490 (offset -649.8 deg)
+// Steering angle is 0.02 deg per bit with the centre at raw 32490. Raw rises to the right, so the angle is
+// negated to match openpilot's convention (positive = left)
 #define LEAPMOTOR_ANGLE_CENTER 32490
 
 static uint8_t leapmotor_crc8_lut_8h2f[256];
@@ -66,7 +67,7 @@ static void leapmotor_rx_hook(const CANPacket_t *msg) {
     }
 
     if (msg->addr == LEAPMOTOR_EPS_STEERING) {
-      int angle_meas_new = (int)GET_BYTES(msg, 3, 2) - LEAPMOTOR_ANGLE_CENTER;
+      int angle_meas_new = LEAPMOTOR_ANGLE_CENTER - (int)GET_BYTES(msg, 3, 2);
       update_sample(&angle_meas, angle_meas_new);
     }
 
@@ -97,7 +98,7 @@ static bool leapmotor_tx_hook(const CANPacket_t *msg) {
 
   bool tx = true;
   if (msg->addr == LEAPMOTOR_ADAS_LKA) {
-    int desired_angle = (int)GET_BYTES(msg, 13, 2) - LEAPMOTOR_ANGLE_CENTER;  // STEER_ANGLE_REQ
+    int desired_angle = LEAPMOTOR_ANGLE_CENTER - (int)GET_BYTES(msg, 13, 2);  // STEER_ANGLE_REQ
     bool lka_active = GET_BIT(msg, 99U);                                         // LCC_STEERING_ACTIVE_COPY
     if (steer_angle_cmd_checks_vm(desired_angle, lka_active, LEAPMOTOR_STEERING_LIMITS, LEAPMOTOR_STEERING_PARAMS)) {
       tx = false;

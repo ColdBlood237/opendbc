@@ -26,6 +26,11 @@ REAL_ADAS_LKA = {
 }
 STEERING_BYTES = {12, 13, 14, 17}  # LCC_STEERING_ACTIVE_COPY (bit 99), STEER_ANGLE_REQ (104|16), LCC_STATE (140|4)
 
+# Real frames from the filmed figure-eights at the moments of hardest right and left turn, as measured by the
+# comma's own gyro (livePose.angularVelocityDevice.z: +36.6 deg/s right, -44.6 deg/s left)
+HARD_RIGHT = {0x18D: "0B0602CAE4009EC5869A5E012C2C0000D5128658A3E803000000000000000000", 0x233: "4C06C88947811100"}
+HARD_LEFT = {0x18D: "130E02BA1D0F644386C24D010001000004128702A3E803000000000000000000", 0x233: "7E0A43A647AD3100"}
+
 
 class TestLeapmotorCan(unittest.TestCase):
   def setUp(self):
@@ -33,6 +38,18 @@ class TestLeapmotorCan(unittest.TestCase):
 
   def unpack(self, dat: bytes) -> dict:
     return {n: get_raw_value(dat, s) * s.factor + s.offset for n, s in self.msg.sigs.items()}
+
+  def test_sign_convention(self):
+    # openpilot expects positive = left for steering angle and yaw rate
+    dbc = DBC("leapmotor_b10")
+
+    def decode(addr, hexdata, name):
+      sig = dbc.addr_to_msg[addr].sigs[name]
+      return get_raw_value(bytes.fromhex(hexdata), sig) * sig.factor + sig.offset
+    self.assertLess(decode(0x18D, HARD_RIGHT[0x18D], "STEER_ANGLE"), -400)
+    self.assertLess(decode(0x233, HARD_RIGHT[0x233], "YAW_RATE"), -30)
+    self.assertGreater(decode(0x18D, HARD_LEFT[0x18D], "STEER_ANGLE"), 400)
+    self.assertGreater(decode(0x233, HARD_LEFT[0x233], "YAW_RATE"), 30)
 
   def test_dbc_covers_every_used_bit(self):
     # unpacking then packing a real frame (with its own counter) must reproduce it exactly
