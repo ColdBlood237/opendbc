@@ -50,7 +50,8 @@ class CAR(Platforms):
 
 # Part number (F187), physical request = reply minus 8: EPS 0x735, brake 0x736, front camera 0x756, all confirmed by a
 # read-only UDS probe on the car. No tester present first: the camera did not answer openpilot's query when it led with
-# one, but answers F187 directly. The camera is non-essential so a late or missing reply cannot block the fingerprint.
+# one, but answers F187 directly. At ignition, before READY, only the brake answers (the EPS stays silent until READY,
+# the camera is slow), so the EPS and camera are non-essential; their part numbers are still checked when present.
 PART_NUMBER_REQUEST = bytes([0x22, 0xF1, 0x87])
 PART_NUMBER_RESPONSE = bytes([0x62, 0xF1, 0x87])
 
@@ -64,6 +65,7 @@ FW_QUERY_CONFIG = FwQueryConfig(
     ),
   ],
   non_essential_ecus={
+    Ecu.eps: [CAR.LEAPMOTOR_B10],
     Ecu.fwdCamera: [CAR.LEAPMOTOR_B10],
   },
   # part numbers such as 3401100-AG01, zero-padded to 19 bytes
