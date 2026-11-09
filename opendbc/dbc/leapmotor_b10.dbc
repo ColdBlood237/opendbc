@@ -26,7 +26,9 @@ BO_ 397 EPS_STEERING: 32 XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ STEER_ANGLE : 24|16@1+ (-0.02,649.8) [-661|650] "deg" XXX
  SG_ STEER_SPEED_ABS : 40|8@1+ (4,0) [0|1020] "deg/s" XXX
+ SG_ EPS_READY : 66|1@1+ (1,0) [0|1] "" XXX
  SG_ LCC_STEERING_ACTIVE : 67|1@1+ (1,0) [0|1] "" XXX
+ SG_ EPS_STARTUP : 120|2@1+ (1,0) [0|3] "" XXX
  SG_ STEER_TORQUE_CANDIDATE : 80|8@1+ (-1,78) [0|0] "raw" XXX
  SG_ EPS_ASSIST_TORQUE_CANDIDATE : 168|16@1+ (1,-1000) [0|0] "raw" XXX
 
@@ -113,6 +115,8 @@ CM_ SG_ 563 LAT_ACCEL_CANDIDATE "WEAK: R2 0.33-0.92 against speed times yaw. Sca
 CM_ SG_ 563 LONG_ACCEL_CANDIDATE "WEAK: R2 0.43-0.88 against livePose. Scale and width unproven.";
 CM_ SG_ 389 LONG_ACCEL "INFERRED: R2 0.70-0.95 against livePose on 5 datasets. Same encoding as the Leapmotor T03 DBC (10 bits, offset -16), which matches the earlier 9-bit signed reading over the logged range. No wrap down to -6.8 m/s^2.";
 CM_ SG_ 589 DISPLAY_SPEED "CONFIRMED: equal to the filmed dashboard speed in 6 of 6 checks (50, 70, 100 km/h). Reads about 3.5 percent above the wheel speeds, as dashboards do.";
+CM_ SG_ 397 EPS_READY "INFERRED: 0 for the first 0.2 s after ignition, then 1 on every frame of every recorded route (about 400,000 frames). Used as a permanent steering fault if it drops after having been set. No real EPS fault has been recorded, so fault codes are still unknown.";
+CM_ SG_ 397 EPS_STARTUP "INFERRED: 3 for the first second after ignition, then 0 on every recorded frame.";
 CM_ SG_ 397 STEER_ANGLE "CONFIRMED by filmed holds: raw moves about 4450 per 90 deg and 9000 per 180 deg. Sign CONFIRMED: positive = left (openpilot convention); raw rises to the right (r +0.98 against the comma gyro in the figure-eights). Factor is negative so openpilot reads left-positive. Lock is about -515/+522 deg, or 2.9 turns, which the driver confirmed. Centre 32490 from the filmed centre holds; a few counts may remain.";
 CM_ SG_ 397 STEER_SPEED_ABS "INFERRED: one count is about 202 raw per second, or 4.04 deg/s, R2 0.99 or better on 5 datasets; 4 assumed, the same as the Leapmotor T03 DBC. Magnitude only, no sign.";
 CM_ SG_ 397 STEER_TORQUE_CANDIDATE "INFERRED: driver steering torque, positive = left (openpilot convention). Raw 57 and 100 while held still at left and right lock, exactly 78 hands off; raw rises when steering right (r +0.54 to +0.81 with the steering rate on 3 traces). Hands-off LCC never exceeds 3, manual steering while moving reaches 7 (p90) to 20. Unit unknown.";

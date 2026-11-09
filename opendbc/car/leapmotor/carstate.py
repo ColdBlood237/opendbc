@@ -14,6 +14,7 @@ class CarState(CarStateBase):
     self.steering_angle_last = 0.0
     self.lcc_state = 7
     self.adas_lka: dict | None = None
+    self.eps_ready_seen = False
 
   def update(self, can_parsers) -> structs.CarState:
     cp = can_parsers[Bus.pt]
@@ -44,6 +45,11 @@ class CarState(CarStateBase):
     ret.steeringTorque = cp.vl['EPS_STEERING']['STEER_TORQUE_CANDIDATE']
     ret.steeringTorqueEps = cp.vl['EPS_STEERING']['EPS_ASSIST_TORQUE_CANDIDATE']
     ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorque) > CarControllerParams.STEER_DRIVER_ALLOWANCE, 5)
+    # EPS_READY turns on within 0.2 s of ignition and never dropped on any recorded drive: losing it after it was
+    # set is treated as a permanent fault. Temporary fault codes are unknown until the EPS has refused a command.
+    eps_ready = bool(cp.vl['EPS_STEERING']['EPS_READY'])
+    self.eps_ready_seen = self.eps_ready_seen or eps_ready
+    ret.steerFaultPermanent = self.eps_ready_seen and not eps_ready
 
     # gear
     ret.gearShifter = GEARS.get(int(cp.vl['VEHICLE_STATE']['GEAR']), GearShifter.unknown)
