@@ -125,6 +125,12 @@ BO_ 554 BSD_RIGHT: 32 XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ OBJECT_DETECTED : 17|1@1+ (1,0) [0|1] "" XXX
 
+BO_ 553 ADAS_LANE_LEAD: 64 XXX
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ LANE_QUALITY_CANDIDATE : 120|16@1+ (1,0) [0|65535] "" XXX
+ SG_ LEAD_DISTANCE_CANDIDATE : 352|8@1+ (1,0) [0|255] "raw" XXX
+
 BO_ 589 CLUSTER: 32 XXX
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
@@ -142,6 +148,9 @@ CM_ SG_ 563 LAT_ACCEL_CANDIDATE "WEAK: R2 0.33-0.92 against speed times yaw. Sca
 CM_ SG_ 563 LONG_ACCEL_CANDIDATE "WEAK: R2 0.43-0.88 against livePose. Scale and width unproven.";
 CM_ SG_ 389 LONG_ACCEL "INFERRED: R2 0.70-0.95 against livePose on 5 datasets. Same encoding as the Leapmotor T03 DBC (10 bits, offset -16), which matches the earlier 9-bit signed reading over the logged range. No wrap down to -6.8 m/s^2.";
 CM_ SG_ 589 DISPLAY_SPEED "CONFIRMED: equal to the filmed dashboard speed in 6 of 6 checks (50, 70, 100 km/h). Reads about 3.5 percent above the wheel speeds, as dashboards do.";
+CM_ BO_ 553 "Front camera (ADAS clock cluster), 20 Hz. Mostly lane and object data, largely undecoded. Not used by openpilot.";
+CM_ SG_ 553 LEAD_DISTANCE_CANDIDATE "INFERRED: follows openpilot's own lead distance (modelV2.leadsV3[0].x, prob > 0.7): r +0.93 on the fit route, +0.92 and +0.72 on two held-out routes; distance ~ 0.84*raw + 7.8 m (median error 6-7.5 m held out). 0 when no lead is seen. Scale and reference point not established.";
+CM_ SG_ 553 LANE_QUALITY_CANDIDATE "INFERRED, weak: dropped to 0 and changed value as the lane markings ended at a filmed toll plaza, about 0.6 s before the dashboard's LCC icon disappeared. Probably lane-line quality or type, not a flag.";
 CM_ BO_ 552 "Rear-left blind-spot radar (20 Hz, silent when stopped). Bytes 8-15 carry object data when something is detected.";
 CM_ SG_ 552 OBJECT_DETECTED "CONFIRMED on video: on 3 of 3 checked episodes a car appeared in the left lane beside the B10 in the road camera within 1 s of the flag clearing. Set in 8.5% of driving above 50 km/h, less often while signalling left (drivers wait for a clear lane).";
 CM_ BO_ 554 "Rear-right blind-spot radar, same layout as BSD_LEFT (0x228).";
