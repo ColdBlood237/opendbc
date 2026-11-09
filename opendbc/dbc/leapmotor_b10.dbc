@@ -17,17 +17,17 @@ BO_ 388 WHEEL_SPEEDS: 32 XXX
 BO_ 563 IMU_CANDIDATE: 8 XXX
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ YAW_RATE : 41|13@1+ (-0.02,81.92) [0|0] "deg/s" XXX
+ SG_ YAW_RATE : 41|13@1+ (0.02,-81.92) [0|0] "deg/s" XXX
  SG_ LAT_ACCEL_CANDIDATE : 16|9@1- (-0.03,0) [0|0] "m/s^2" XXX
  SG_ LONG_ACCEL_CANDIDATE : 26|8@1- (0.028,0) [0|0] "m/s^2" XXX
 
 BO_ 397 EPS_STEERING: 32 XXX
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ STEER_ANGLE : 24|16@1+ (0.02,-649.8) [-650|661] "deg" XXX
+ SG_ STEER_ANGLE : 24|16@1+ (-0.02,649.8) [-661|650] "deg" XXX
  SG_ STEER_SPEED_ABS : 40|8@1+ (4,0) [0|1020] "deg/s" XXX
  SG_ LCC_STEERING_ACTIVE : 67|1@1+ (1,0) [0|1] "" XXX
- SG_ STEER_TORQUE_CANDIDATE : 80|8@1+ (1,-78) [0|0] "raw" XXX
+ SG_ STEER_TORQUE_CANDIDATE : 80|8@1+ (-1,78) [0|0] "raw" XXX
  SG_ EPS_ASSIST_TORQUE_CANDIDATE : 168|16@1+ (1,-1000) [0|0] "raw" XXX
 
 BO_ 131 ADAS_LKA: 32 XXX
@@ -49,7 +49,7 @@ BO_ 131 ADAS_LKA: 32 XXX
  SG_ UNKNOWN_96 : 96|3@1+ (1,0) [0|7] "" XXX
  SG_ LCC_STEERING_ACTIVE_COPY : 99|1@1+ (1,0) [0|1] "" XXX
  SG_ UNKNOWN_100 : 100|2@1+ (1,0) [0|3] "" XXX
- SG_ STEER_ANGLE_REQ : 104|16@1+ (0.02,-649.8) [-650|661] "deg" XXX
+ SG_ STEER_ANGLE_REQ : 104|16@1+ (-0.02,649.8) [-661|650] "deg" XXX
  SG_ LCC_UNKNOWN_128 : 128|7@1+ (1,0) [0|127] "" XXX
  SG_ LCC_UNKNOWN_136 : 136|4@1+ (1,0) [0|15] "" XXX
  SG_ LCC_STATE : 140|4@1+ (1,0) [0|15] "" XXX
@@ -108,14 +108,14 @@ CM_ SG_ 388 WHEEL_SPEED_FL "CONFIRMED: positions from filmed figure-eights: fron
 CM_ SG_ 388 WHEEL_SPEED_FR "CONFIRMED: positions from filmed figure-eights: front/rear rises from 1.02 straight to 1.27 near lock, and the left wheels run faster when steering right. Scale matches GPS within 0.1 km/h at a filmed steady 30 km/h. within about 1% of GPS above 60 km/h up to 126 km/h. Width at least 14 bits; no wrap in about 11 hours of logs.";
 CM_ SG_ 388 WHEEL_SPEED_RL "CONFIRMED: positions from filmed figure-eights: front/rear rises from 1.02 straight to 1.27 near lock, and the left wheels run faster when steering right. Scale matches GPS within 0.1 km/h at a filmed steady 30 km/h. within about 1% of GPS above 60 km/h up to 126 km/h. Width at least 14 bits; no wrap in about 11 hours of logs.";
 CM_ SG_ 388 WHEEL_SPEED_RR "CONFIRMED: positions from filmed figure-eights: front/rear rises from 1.02 straight to 1.27 near lock, and the left wheels run faster when steering right. Scale matches GPS within 0.1 km/h at a filmed steady 30 km/h. within about 1% of GPS above 60 km/h up to 126 km/h. Width at least 14 bits; no wrap in about 11 hours of logs.";
-CM_ SG_ 563 YAW_RATE "INFERRED (sign CONFIRMED: positive when steering right in the figure-eights): R2 0.993-0.999 against livePose on 5 datasets. Fit gives -0.0196; -0.02 assumed.";
+CM_ SG_ 563 YAW_RATE "INFERRED scale, sign CONFIRMED: positive = turning left (openpilot convention); raw rises when turning right, r +0.994 to +1.000 against the comma gyro (livePose.angularVelocityDevice.z, positive right) on 3 traces. R2 0.993-0.999 against livePose on 5 datasets. Fit gives 0.0196; 0.02 assumed.";
 CM_ SG_ 563 LAT_ACCEL_CANDIDATE "WEAK: R2 0.33-0.92 against speed times yaw. Scale and width unproven.";
 CM_ SG_ 563 LONG_ACCEL_CANDIDATE "WEAK: R2 0.43-0.88 against livePose. Scale and width unproven.";
 CM_ SG_ 389 LONG_ACCEL "INFERRED: R2 0.70-0.95 against livePose on 5 datasets. Same encoding as the Leapmotor T03 DBC (10 bits, offset -16), which matches the earlier 9-bit signed reading over the logged range. No wrap down to -6.8 m/s^2.";
 CM_ SG_ 589 DISPLAY_SPEED "CONFIRMED: equal to the filmed dashboard speed in 6 of 6 checks (50, 70, 100 km/h). Reads about 3.5 percent above the wheel speeds, as dashboards do.";
-CM_ SG_ 397 STEER_ANGLE "CONFIRMED by filmed holds: raw moves about 4450 per 90 deg and 9000 per 180 deg. Right is positive. Lock is about -515/+522 deg, or 2.9 turns, which the driver confirmed. Centre 32490 from the filmed centre holds; a few counts may remain.";
+CM_ SG_ 397 STEER_ANGLE "CONFIRMED by filmed holds: raw moves about 4450 per 90 deg and 9000 per 180 deg. Sign CONFIRMED: positive = left (openpilot convention); raw rises to the right (r +0.98 against the comma gyro in the figure-eights). Factor is negative so openpilot reads left-positive. Lock is about -515/+522 deg, or 2.9 turns, which the driver confirmed. Centre 32490 from the filmed centre holds; a few counts may remain.";
 CM_ SG_ 397 STEER_SPEED_ABS "INFERRED: one count is about 202 raw per second, or 4.04 deg/s, R2 0.99 or better on 5 datasets; 4 assumed, the same as the Leapmotor T03 DBC. Magnitude only, no sign.";
-CM_ SG_ 397 STEER_TORQUE_CANDIDATE "INFERRED: 57 and 100 while held still at left and right lock, exactly 78 hands off, so negative is left. Likely steering torque; unit and width unknown.";
+CM_ SG_ 397 STEER_TORQUE_CANDIDATE "INFERRED: driver steering torque, positive = left (openpilot convention). Raw 57 and 100 while held still at left and right lock, exactly 78 hands off; raw rises when steering right (r +0.54 to +0.81 with the steering rate on 3 traces). Hands-off LCC never exceeds 3, manual steering while moving reaches 7 (p90) to 20. Unit unknown.";
 CM_ BO_ 131 "Layout INFERRED from 396,908 frames on 16 traces (5 days): 166 of 256 bits never change; every bit that is not always zero is defined here, so unpack-then-pack reproduces recorded frames exactly. 50 Hz, sent by the ADAS unit.";
 CM_ SG_ 131 ACC_STATE "INFERRED, strong: 3 while ACC/LCC engaged, 2 when ACC is ready, 1 when not ready (Park, brake pressed) or overridden by the accelerator while engaged (96-100% of those frames have the pedal pressed, on 8 traces).";
 CM_ SG_ 131 ACC_ACCEL_REQ "INFERRED, strong: the ACC acceleration request. Leads the measured acceleration (0x185 LONG_ACCEL) by about 250 ms, r +0.85 to +0.96 on 8 traces; fit gives zero at raw 99.9 and 0.045 m/s^2 per step (0.05 used, residual 0.08 m/s^2). Raw 100 (0) whenever not engaged.";
@@ -126,7 +126,7 @@ CM_ SG_ 131 CONSTANT_152 "CONSTANT: 125 (0x7D) on every recorded frame. Meaning 
 CM_ SG_ 131 LCC_UNKNOWN_128 "UNKNOWN: 1 except while LCC steers, then varies (57 values). Weak, inconsistent correlation with speed and angle; not a steering-torque request. Copied from the camera frame.";
 CM_ SG_ 131 LCC_UNKNOWN_136 "UNKNOWN: 8 except while LCC steers, then varies. Copied from the camera frame.";
 CM_ SG_ 131 UNKNOWN_90 "UNKNOWN: 28 on nearly every frame; a handful of other values. Copied from the camera frame.";
-CM_ SG_ 131 STEER_ANGLE_REQ "INFERRED, strong: the LCC steering angle request. On 5 routes it leads the measured angle (0x18D) by 70-100 ms while LCC steers, and the request-minus-measured gap tracks the LCC torque (r +0.35 to +0.59). In manual driving it lags by 20-30 ms, so it echoes the measured angle when not steering. Sent by the ADAS unit (its own clock, with 0x142/0x229/0x2D1/0x2D5). No torque request found in this frame. Whether the camera sends it, so a camera harness can replace it, is not yet confirmed: see the planned unplug test.";
+CM_ SG_ 131 STEER_ANGLE_REQ "INFERRED, strong: the LCC steering angle request, same encoding as STEER_ANGLE (positive = left; r 1.000 with it). On 5 routes it leads the measured angle (0x18D) by 70-100 ms while LCC steers, and the request-minus-measured gap tracks the LCC torque (r +0.35 to +0.59). In manual driving it lags by 20-30 ms, so it echoes the measured angle when not steering. Sent by the ADAS unit (its own clock, with 0x142/0x229/0x2D1/0x2D5). No torque request found in this frame. Whether the camera sends it, so a camera harness can replace it, is not yet confirmed: see the planned unplug test.";
 CM_ SG_ 389 SEATBELT_BUCKLED "CONFIRMED by the filmed belt step: the driver started unbuckled, buckled, then unbuckled, and this is 1 for those 9.4 s. Mirrored on 0x2A3 bit 31, 0x229 bits 33 and 35, 0x24D bit 146.";
 CM_ SG_ 656 BLINKER_LEFT "CONFIRMED by filmed step order: left, right, then hazards. Flips every 0.40 s. Both blinker bits on means hazards.";
 CM_ SG_ 656 BLINKER_RIGHT "CONFIRMED by filmed step order: left, right, then hazards. Flips every 0.40 s.";

@@ -19,9 +19,11 @@ class CarControllerParams:
     500,  # deg; mechanical lock is about 522 deg, keep a margin so the EPS never drives into the end stop
     MAX_ANGLE_RATE=5,  # deg per 20 ms frame (250 deg/s): lock to lock in about 4 s. EPS fault rate untested
   )
-  # Raw driver torque from EPS_STEERING.STEER_TORQUE_CANDIDATE: about 1-3 hands off, 21 holding full lock.
-  # Unit unknown; threshold to be tuned.
-  STEER_DRIVER_ALLOWANCE = 8
+  # Driver torque from EPS_STEERING.STEER_TORQUE_CANDIDATE (unit unknown). Hands-off LCC never exceeds 3 on the
+  # filmed route and 5 over 36 min of LCC; holding full lock parked reaches 21-25. With the 5-frame debounce in
+  # carstate, 4 gave zero steeringPressed events over those 36 min. Steering against openpilot will need more
+  # torque than free manual steering, so detection then should be higher than the 22% seen in manual turns.
+  STEER_DRIVER_ALLOWANCE = 4
 
 
 @dataclass

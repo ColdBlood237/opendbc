@@ -16,9 +16,10 @@ ADAS_LKA = 0x83
 
 
 def round_angle(apply_angle, can_offset=0):
-  # STEER_ANGLE_REQ is 0.02 deg per bit, offset -649.8 deg, so 0 deg is exactly representable (raw 32490)
-  raw = math.floor((apply_angle + 649.8) / 0.02 + 0.5) + can_offset
-  return raw * 0.02 - 649.8
+  # STEER_ANGLE_REQ is -0.02 deg per bit, offset 649.8 deg, so 0 deg is exactly representable (raw 32490).
+  # can_offset is in angle units of 0.02 deg (positive = larger angle)
+  raw = math.floor((apply_angle - 649.8) / -0.02 + 0.5) - can_offset
+  return raw * -0.02 + 649.8
 
 REAL_FRAMES = {  # 20 consecutive frames per message from a 2025 global B10, route 00000232 (driving with ACC/LCC)
   0x184: [
@@ -120,7 +121,7 @@ class TestLeapmotorSafety(common.CarSafetyTest, common.AngleSteeringSafetyTest):
   MAIN_BUS = 0
 
   STEER_ANGLE_MAX = 500
-  # the 16-bit request field only spans -649.8..661 deg, so test within it
+  # the 16-bit request field only spans -661..649.8 deg, so test within it
   STEER_ANGLE_TEST_MAX = 645
   DEG_TO_CAN = 50
 
@@ -227,6 +228,13 @@ class TestLeapmotorSafety(common.CarSafetyTest, common.AngleSteeringSafetyTest):
     msg = self._speed_msg(0)
     msg[0].data[0] ^= 0xFF
     self.assertFalse(self._rx(msg))
+
+  def test_angle_sign_matches_dbc(self):
+    # a real frame at right lock must give a negative measured angle in C, as in the DBC (positive = left)
+    right_lock = "0B0602CAE4009EC5869A5E012C2C0000D5128658A3E803000000000000000000"  # raw 58570, about -521.6 deg
+    self.assertTrue(self._rx(libsafety_py.make_CANPacket(0x18D, self.MAIN_BUS, bytes.fromhex(right_lock))))
+    # one frame into an empty sample history: the new value is the minimum, the old zeros are the maximum
+    self.assertEqual(self.safety.get_angle_meas_min(), 32490 - 58570)
 
   def test_real_frames(self):
     # unmodified frames from a real car must pass the C checksum and counter checks
