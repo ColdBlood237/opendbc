@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 
 from opendbc.car import Bus, CarSpecs, DbcDict, PlatformConfig, Platforms
 from opendbc.car.docs_definitions import CarDocs, CarHarness, CarParts
+from opendbc.car.lateral import AngleSteeringLimits
 from opendbc.car.fw_query_definitions import FwQueryConfig, Request, StdQueries
 from opendbc.car.structs import CarParams
 
@@ -10,6 +11,14 @@ Ecu = CarParams.Ecu
 
 class CarControllerParams:
   STEER_STEP = 1
+
+  # Must match opendbc/safety/modes/leapmotor.h: max 400 deg (lock is about 520 deg), rate limits in deg per
+  # 50 Hz frame at 0, 5 and 25 m/s. Conservative drafts, to be tuned once the steering responds to openpilot.
+  ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
+    400,
+    ([0., 5., 25.], [1.0, .6, .08]),
+    ([0., 5., 25.], [2.0, .8, .12]),
+  )
   # Raw driver torque from EPS_STEERING.STEER_TORQUE_CANDIDATE: about 1-3 hands off, 21 holding full lock.
   # Unit unknown; threshold to be tuned.
   STEER_DRIVER_ALLOWANCE = 8
