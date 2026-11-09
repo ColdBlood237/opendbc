@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from opendbc.car import Bus, CarSpecs, DbcDict, PlatformConfig, Platforms
 from opendbc.car.docs_definitions import CarDocs, CarHarness, CarParts
 from opendbc.car.lateral import AngleSteeringLimitsVM
-from opendbc.car.fw_query_definitions import FwQueryConfig, Request, StdQueries
+from opendbc.car.fw_query_definitions import FwQueryConfig, Request
 from opendbc.car.structs import CarParams
 
 Ecu = CarParams.Ecu
@@ -48,21 +48,24 @@ class CAR(Platforms):
   )
 
 
-# The car's own gateway queries these identifiers on 0x7DF at every ignition, and the EPS (0x73D), brake (0x73E)
-# and front camera (0x75E) answer. Physical request addresses are the reply minus 8: confirmed for the EPS (0x735) by
-# flow control in logged multi-frame replies, still unconfirmed for the brake (0x736) and camera (0x756).
+# Part number (F187), physical request = reply minus 8: EPS 0x735, brake 0x736, front camera 0x756, all confirmed by a
+# read-only UDS probe on the car. No tester present first: the camera did not answer openpilot's query when it led with
+# one, but answers F187 directly. The camera is non-essential so a late or missing reply cannot block the fingerprint.
 PART_NUMBER_REQUEST = bytes([0x22, 0xF1, 0x87])
 PART_NUMBER_RESPONSE = bytes([0x62, 0xF1, 0x87])
 
 FW_QUERY_CONFIG = FwQueryConfig(
   requests=[
     Request(
-      [StdQueries.TESTER_PRESENT_REQUEST, PART_NUMBER_REQUEST],
-      [StdQueries.TESTER_PRESENT_RESPONSE, PART_NUMBER_RESPONSE],
+      [PART_NUMBER_REQUEST],
+      [PART_NUMBER_RESPONSE],
       whitelist_ecus=[Ecu.eps, Ecu.abs, Ecu.fwdCamera],
       bus=0,
     ),
   ],
+  non_essential_ecus={
+    Ecu.fwdCamera: [CAR.LEAPMOTOR_B10],
+  },
   # part numbers such as 3401100-AG01, zero-padded to 19 bytes
   fw_version_regex=br"\d{7}-[A-Z]{2}\d{2}\x00{7}",
 )
