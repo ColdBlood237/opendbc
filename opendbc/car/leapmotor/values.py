@@ -9,11 +9,9 @@ from opendbc.car.structs import CarParams
 Ecu = CarParams.Ecu
 
 
-# STAGE 1 TEST BUILD: openpilot replaces the camera's ADAS_LKA (0x83) with its own rebuilt copy, but never asks
-# the EPS to steer, and openpilot cannot engage. Proves the car accepts openpilot's frames (checksum, counter,
-# timing, layout) before any steering. It also never cancels stock ACC, which works as normal. Set True only for
-# the stage-2 steering test.
-STEERING_ALLOWED = False
+# STAGE 2 TEST BUILD: openpilot steers while it is engaged, which requires the stock ACC to be engaged (safety model).
+# First steering tests only: low speed, empty road, joystick mode, hands on the wheel. See the test plan.
+STEERING_ALLOWED = True
 
 
 class CarControllerParams:

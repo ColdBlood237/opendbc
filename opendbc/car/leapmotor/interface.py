@@ -12,8 +12,8 @@ class CarInterface(CarInterfaceBase):
   def _get_params(ret: structs.CarParams, candidate, fingerprint, car_fw, alpha_long, is_release, docs) -> structs.CarParams:
     ret.brand = 'leapmotor'
 
-    # STAGE 1 TEST BUILD: real safety model (opens the harness relay, blocks the camera's 0x83) and openpilot sends
-    # its rebuilt 0x83, but never steers (values.STEERING_ALLOWED) and cannot engage. Not for normal use.
+    # STAGE 2 TEST BUILD: real safety model (opens the harness relay, blocks the camera's 0x83); openpilot steers when
+    # engaged with the stock ACC (values.STEERING_ALLOWED). For supervised first steering tests only.
     ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.leapmotor)]
     ret.dashcamOnly = False
 
