@@ -61,6 +61,10 @@ class CarState(CarStateBase):
     ret.doorOpen = bool(cp.vl['BODY_CONTROL']['DRIVER_DOOR_OPEN'])
     ret.seatbeltUnlatched = not bool(cp.vl['LONG_ACCEL_CANDIDATE']['SEATBELT_BUCKLED'])
 
+    # blind-spot radars: silent when stopped, so they are not timeout-checked (see get_can_parsers)
+    ret.leftBlindspot = bool(cp.vl['BSD_LEFT']['OBJECT_DETECTED'])
+    ret.rightBlindspot = bool(cp.vl['BSD_RIGHT']['OBJECT_DETECTED'])
+
     # stock ACC / LCC, read from the camera side
     ret.cruiseState.enabled = bool(cp.vl['POWERTRAIN_STATE']['ASSIST_ENGAGED'])
     # latest VCU frame, copied by the controller to cancel ACC; None until received
@@ -80,6 +84,6 @@ class CarState(CarStateBase):
   @staticmethod
   def get_can_parsers(CP):
     return {
-      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 0),
+      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [("BSD_LEFT", float('nan')), ("BSD_RIGHT", float('nan'))], 0),
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 2),
     }

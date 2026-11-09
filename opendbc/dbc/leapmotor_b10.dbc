@@ -115,6 +115,16 @@ BO_ 322 ROAD_SIGNS: 16 XXX
  SG_ HMI_ALERT_CANDIDATE : 22|4@1+ (1,0) [0|15] "" XXX
  SG_ SPEED_LIMIT : 72|8@1+ (1,0) [0|255] "km/h" XXX
 
+BO_ 552 BSD_LEFT: 32 XXX
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ OBJECT_DETECTED : 17|1@1+ (1,0) [0|1] "" XXX
+
+BO_ 554 BSD_RIGHT: 32 XXX
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ OBJECT_DETECTED : 17|1@1+ (1,0) [0|1] "" XXX
+
 BO_ 589 CLUSTER: 32 XXX
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
@@ -132,6 +142,10 @@ CM_ SG_ 563 LAT_ACCEL_CANDIDATE "WEAK: R2 0.33-0.92 against speed times yaw. Sca
 CM_ SG_ 563 LONG_ACCEL_CANDIDATE "WEAK: R2 0.43-0.88 against livePose. Scale and width unproven.";
 CM_ SG_ 389 LONG_ACCEL "INFERRED: R2 0.70-0.95 against livePose on 5 datasets. Same encoding as the Leapmotor T03 DBC (10 bits, offset -16), which matches the earlier 9-bit signed reading over the logged range. No wrap down to -6.8 m/s^2.";
 CM_ SG_ 589 DISPLAY_SPEED "CONFIRMED: equal to the filmed dashboard speed in 6 of 6 checks (50, 70, 100 km/h). Reads about 3.5 percent above the wheel speeds, as dashboards do.";
+CM_ BO_ 552 "Rear-left blind-spot radar (20 Hz, silent when stopped). Bytes 8-15 carry object data when something is detected.";
+CM_ SG_ 552 OBJECT_DETECTED "CONFIRMED on video: on 3 of 3 checked episodes a car appeared in the left lane beside the B10 in the road camera within 1 s of the flag clearing. Set in 8.5% of driving above 50 km/h, less often while signalling left (drivers wait for a clear lane).";
+CM_ BO_ 554 "Rear-right blind-spot radar, same layout as BSD_LEFT (0x228).";
+CM_ SG_ 554 OBJECT_DETECTED "INFERRED by symmetry with BSD_LEFT: same layout, set in 0.7% of driving above 50 km/h (in right-hand traffic you are rarely overtaken on the right). The one checked episode was not conclusive on video.";
 CM_ SG_ 397 EPS_READY "INFERRED: 0 for the first 0.2 s after ignition, then 1 on every frame of every recorded route (about 400,000 frames). Used as a permanent steering fault if it drops after having been set. No real EPS fault has been recorded, so fault codes are still unknown.";
 CM_ SG_ 397 EPS_STARTUP "INFERRED: 3 for the first second after ignition, then 0 on every recorded frame.";
 CM_ SG_ 397 STEER_ANGLE "CONFIRMED by filmed holds: raw moves about 4450 per 90 deg and 9000 per 180 deg. Sign CONFIRMED: positive = left (openpilot convention); raw rises to the right (r +0.98 against the comma gyro in the figure-eights). Factor is negative so openpilot reads left-positive. Lock is about -515/+522 deg, or 2.9 turns, which the driver confirmed. Centre 32490 from the filmed centre holds; a few counts may remain.";
